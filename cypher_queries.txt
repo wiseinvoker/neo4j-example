@@ -1,0 +1,47 @@
+
+# To remove all nodes and relationship
+MATCH (n) DETACH DELETE n
+
+ON CREATE SET n.count=1 
+ON MATCH SET n.count=n.count+1
+
+# To import Count
+LOAD CSV WITH HEADERS FROM "file:///count.csv" AS csvLine
+MERGE (y:Year {year: csvLine.YEAR})
+CREATE (m:Month {year: csvLine.YEAR, month: csvLine.MONTH, _GrandTotalCount: toInteger(csvLine.INDIA)+toInteger(csvLine.US)+toInteger(csvLine.AUSTRALIA)+toInteger(csvLine.FRANCE)+toInteger(csvLine.LONDON)})
+CREATE (c1:Count { country: "India", count: csvLine.INDIA})
+CREATE (c2:Count { country: "US", count: csvLine.US})
+CREATE (c3:Count { country: "Australia", count: csvLine.AUSTRALIA})
+CREATE (c4:Count { country: "France", count: csvLine.FRANCE})
+CREATE (c5:Count { country: "London", count: csvLine.LONDON})
+CREATE (m)-[:MONTH_OF]->(y)
+CREATE (c1)-[:COUNT_AT]->(m)
+CREATE (c2)-[:COUNT_AT]->(m)
+CREATE (c3)-[:COUNT_AT]->(m)
+CREATE (c4)-[:COUNT_AT]->(m)
+CREATE (c5)-[:COUNT_AT]->(m)
+
+match (c:Count)-[:COUNT_AT]->(m:Month)-[:MONTH_OF]->(y:Year {year:"1995"}) return c, m, y
+
+
+
+# To import Stage
+LOAD CSV WITH HEADERS FROM "file:///stage.csv" AS csvLine
+MERGE (y:Year {year: csvLine.YEAR})
+MERGE (m:Month {year: csvLine.YEAR, month: csvLine.MONTH})
+ON MATCH SET m._GrandTotalStage=toInteger(csvLine.INDIA)+toInteger(csvLine.US)+toInteger(csvLine.AUSTRALIA)+toInteger(csvLine.FRANCE)+toInteger(csvLine.LONDON)
+CREATE (c1:Stage { country: "India", stage: csvLine.INDIA})
+CREATE (c2:Stage { country: "US", stage: csvLine.US})
+CREATE (c3:Stage { country: "Australia", stage: csvLine.AUSTRALIA})
+CREATE (c4:Stage { country: "France", stage: csvLine.FRANCE})
+CREATE (c5:Stage { country: "London", stage: csvLine.LONDON})
+MERGE (m)-[:MONTH_OF]->(y)
+CREATE (c1)-[:STAGE_AT]->(m)
+CREATE (c2)-[:STAGE_AT]->(m)
+CREATE (c3)-[:STAGE_AT]->(m)
+CREATE (c4)-[:STAGE_AT]->(m)
+CREATE (c5)-[:STAGE_AT]->(m)
+
+
+# To see nodes and relationships
+MATCH (n) RETURN n
